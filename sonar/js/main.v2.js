@@ -23,7 +23,7 @@ var margin = {top: 20, right: 20, bottom: 20, left: 80},
       indicator: "#aace00",
       heading: "#1A68DB"
     },
-    data_updation_interval = 1000;  // in milliseconds
+    data_updation_interval = 2000;  // in milliseconds
 
 var parseDate = d3.time.format("%Y%m%d").parse;
 
@@ -33,12 +33,24 @@ var y = d3.time.scale()
 
 var x = d3.scale.linear()
         .domain([0,360])
-        .range([0, width]);
+        .range([0, width])
+        ;
     
 var color = d3.scale.category10();
 
+function x_special_case(d) {
+  return (d <= 180) ? ((d+180) === 360 ? 0: (d+180)) : d-180;
+};
+function x_special_case_inverse(d) {
+  var _d = (d <= 180) ? d+180 : d-180;
+//  console.log(d,_d)
+  return _d;
+};
+
 var xAxis = d3.svg.axis()
     .scale(x)
+    .tickValues([0,45,90,135,180,225,270,315,360])  // use this to manually assign tick values, Omit for automation
+    .tickFormat(x_special_case)
     .orient("top");
 
 var yAxis = d3.svg.axis()
@@ -56,13 +68,13 @@ var zoom = d3.behavior.zoom()
           .x(x)
           .y(y);
           
-var indicator = d3.svg.symbol().type('triangle-up')
+var indicator = d3.svg.symbol().type('square')
           .size(function(d){ return strengthScale(d); });
 
 var line = d3.svg.line()
     .interpolate("basis")
     .y(function(d) { return y(d.date); })
-    .x(function(d) { return x(d.degree); });
+    .x(function(d) { return x(x_special_case_inverse(d.degree)); });
 
 var svg = d3.select("#viz").append("svg")
     .attr("id", "baseSVG")
@@ -132,7 +144,19 @@ var active_timers = [];
         .append("g")
         .attr("transform","translate(0,0)");
 
-  //legend.selectAll("g");
+var defs = d3.select("#baseSVG").append('svg:defs');
+    defs.append('svg:pattern')
+        .attr('id', 'blurry')
+        .attr('patternUnits', 'userSpaceOnUse')
+        .attr('width', '20')
+        .attr('height', '20')
+        .append('svg:image')
+        .attr('xlink:href', 'img/blurry_20.png')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', "5")
+        .attr('height', "5");
+
 
 
 function zoomed() {
@@ -156,25 +180,25 @@ d3.select("#baseSVG").call(zoom);
     
     active_timers.push( 
       setInterval(function(){
-        addHeading( new Date(), getRandomInt(110,150) );
+        addHeading( new Date(), getRandomInt(315,335) );
       }, data_updation_interval )
     );
 
     active_timers.push( 
       setInterval(function(){
-        addDetection(new Date(), 'New Delhi', getRandomInt(110,120), getRandomInt(1,10)  );
+        addDetection(new Date(), 'New Delhi', getRandomInt(308,313), getRandomInt(1,10)  );
       }, data_updation_interval )
     );
 
     active_timers.push(
       setInterval(function(){
-        addDetection(new Date(), 'Bangalore', getRandomInt(140,150), getRandomInt(1,10)  );
+        addDetection(new Date(), 'Bangalore', getRandomInt(318,324), getRandomInt(1,10)  );
       }, data_updation_interval)
     );
 
     active_timers.push( 
       setInterval(function(){
-        addDetection(new Date(), 'Vadodara', getRandomInt(130,140), getRandomInt(1,10)  );
+        addDetection(new Date(), 'Vadodara', getRandomInt(335,340), getRandomInt(1,10)  );
       }, data_updation_interval)
     );
 
@@ -296,15 +320,16 @@ d3.select("#baseSVG").call(zoom);
               .attr("d", function(d){
                 return indicator(d.strength);
               })
-              .style("fill", function(d) { return colors.indicator; })
+              //.style("fill", function(d) { return colors.indicator; })
+              .style("fill", "url(#blurry)")
               .style("opacity",0);
 
           // ENTER + UPDATE
           _indicators
             .attr('transform', function(d,i){
-              return "translate("+x(d.degree)+","+y(d.date)+")rotate("+ ( _i%2 ? -90 : 90 ) +")";
+              return "translate("+x(x_special_case_inverse(d.degree))+","+y(d.date)+")rotate("+ ( _i%2 ? -90 : 90 ) +")";
             })
-            .style("fill-opacity",0.75)
+            //.style("fill-opacity",0.75)
             .style("opacity",1);
 
 

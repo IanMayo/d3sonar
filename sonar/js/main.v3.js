@@ -32,13 +32,14 @@ var y = d3.time.scale()
     ;
 
 var x = d3.scale.linear()
-        .domain([0,360])
+        .domain([-180,180])
         .range([0, width]);
     
 var color = d3.scale.category10();
 
 var xAxis = d3.svg.axis()
     .scale(x)
+    .tickValues([-180,-135,-90,-45,0,45,90,135,180])  // use this to manually assign tick values, Omit for automation
     .orient("top");
 
 var yAxis = d3.svg.axis()
@@ -133,6 +134,18 @@ var active_timers = [];
         .attr("transform","translate(0,0)");
 
   //legend.selectAll("g");
+  var defs = d3.select("#baseSVG").append('svg:defs');
+    defs.append('svg:pattern')
+        .attr('id', 'blurry')
+        .attr('patternUnits', 'userSpaceOnUse')
+        .attr('width', '20')
+        .attr('height', '20')
+        .append('svg:image')
+        .attr('xlink:href', 'img/blurry_20.png')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', "5")
+        .attr('height', "5");
 
 
 function zoomed() {
@@ -156,25 +169,25 @@ d3.select("#baseSVG").call(zoom);
     
     active_timers.push( 
       setInterval(function(){
-        addHeading( new Date(), getRandomInt(110,150) );
+        addHeading( new Date(), getRandomInt(-20,80) );
       }, data_updation_interval )
     );
 
     active_timers.push( 
       setInterval(function(){
-        addDetection(new Date(), 'New Delhi', getRandomInt(110,120), getRandomInt(1,10)  );
+        addDetection(new Date(), 'New Delhi', getRandomInt(-160,-140), getRandomInt(1,10)  );
       }, data_updation_interval )
     );
 
     active_timers.push(
       setInterval(function(){
-        addDetection(new Date(), 'Bangalore', getRandomInt(140,150), getRandomInt(1,10)  );
+        addDetection(new Date(), 'Bangalore', getRandomInt(-20,0), getRandomInt(1,10)  );
       }, data_updation_interval)
     );
 
     active_timers.push( 
       setInterval(function(){
-        addDetection(new Date(), 'Vadodara', getRandomInt(130,140), getRandomInt(1,10)  );
+        addDetection(new Date(), 'Vadodara', getRandomInt(90,100), getRandomInt(1,10)  );
       }, data_updation_interval)
     );
 
@@ -296,7 +309,8 @@ d3.select("#baseSVG").call(zoom);
               .attr("d", function(d){
                 return indicator(d.strength);
               })
-              .style("fill", function(d) { return colors.indicator; })
+              //.style("fill", function(d) { return colors.indicator; })
+              .style("fill", "url(#blurry)")
               .style("opacity",0);
 
           // ENTER + UPDATE
