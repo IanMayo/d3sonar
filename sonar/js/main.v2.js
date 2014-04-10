@@ -167,7 +167,8 @@ function zoomed() {
 
 zoom.on("zoom", zoomed);
 
-d3.select("#baseSVG").call(zoom);
+// enable zoom
+//d3.select("#baseSVG").call(zoom);
 
   // create a map of key and values
   _map = d3.map([]);
