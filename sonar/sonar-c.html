@@ -32,12 +32,12 @@
 
       function x_special_case(d) {
         return (d <= 180) ? ((d+180) === 360 ? 0: (d+180)) : d-180;
-      };
+      }
       function x_special_case_inverse(d) {
         var _d = (d <= 180) ? d+180 : d-180;
       //  console.log(d,_d)
         return _d;
-      };
+      }
 
       var sonar_viz = d3.sonar()
                         .container_el(sonar_el)
@@ -71,7 +71,7 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
-      function setDataUpdateRoutine(argument) {
+      function setDataUpdateRoutine() {
     
         active_timers.push( 
           setInterval(function(){
@@ -97,7 +97,7 @@
           }, data_updation_interval)
         );
 
-      };
+      }
 
       function addHeading(time, bearing) {
     
@@ -111,7 +111,7 @@
           .purgeOldData(true)
           .addHeading(data);
 
-      };
+      }
 
       function addDetection(time, seriesName, bearing, strength){
         
@@ -126,9 +126,9 @@
           .purgeOldData(true)
           .addDetection(data);
 
-      };
+      }
 
-      $("#btn_data_updation_interval").on("click", function(e){
+      $("#btn_data_updation_interval").on("click", function(){
         // clear interval
         active_timers.forEach(function(t){
           clearInterval(t);
