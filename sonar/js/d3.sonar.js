@@ -48,13 +48,13 @@
 			width,
 			height,
 			defaultHeight = $(window).height() * 0.8, // 80% of window height
-			defaultWidth = $(window).width() * 0.8, // 80% of window height
-			maxHeight = 0,	// set this to any positive value, when max chart height needs to be capped. This is an absolute value in pixels.
+//			defaultWidth = $(window).width() * 0.8, // 80% of window height
+//			maxHeight = 0,	// set this to any positive value, when max chart height needs to be capped. This is an absolute value in pixels.
 			margin = {top: 40, left: 100, bottom: 40, right: 50},
 			dimension,
 			data,
 			isResponsive = true,	// true by default
-			resizeTimer,
+//			resizeTimer,
 			_map_detections = d3.map([]),
 			_map_heading = d3.map([]),
 			_prevWidth = 0,
@@ -74,7 +74,7 @@
 		
 			sonar.render();
 		
-		};
+		}
 		
 		/**
 		 * Do first time initiation settings; called only once
@@ -185,7 +185,7 @@
 		 * Usage - Can be called before the viz needs to be redrawn 
 		 * to conform to current viewport
 		 */
-		sonar.reInit = function(rData){
+		sonar.reInit = function(){
 			
 			defaultHeight = $(window).height() * 0.8;
 			
@@ -200,7 +200,8 @@
 				height: height
 			};
 
-			// re-intialize scales
+
+			// re-initialize scales
 			xScale.range([0, width]);
 			
 			yScale
@@ -212,11 +213,11 @@
 		/**
 		 * Render the chart viz with current settings
 		 */
-		sonar.render = function(rData){
+		sonar.render = function(){
 
 			var tDuration = transitionDuration;
 			
-			var chart = d3.select(container_el).select("g")
+			var chart = d3.select(container_el).select("g");
 			
 			width = dimension.width;
 			height = dimension.height;
@@ -249,7 +250,7 @@
 				    .transition()
 					.duration(tDuration)
 				    .attr("transform", "translate(0,"+height+")rotate(-90)");
-			};
+			}
 
 			chart
 				.transition()
@@ -285,7 +286,7 @@
 				.attr("d", function(d) {
 					return headingPath(d.value); 
 				})
-				.style("stroke", function(d) { return colors.heading; })
+				.style("stroke", function() { return colors.heading; });
 
 			heading.exit().remove();
 
@@ -302,13 +303,13 @@
 				.attr("d", function(d) {
 					return detectionPath(d.value); 
 				})
-				.style("stroke", function(d) { return colors.indicator; })
+				.style("stroke", function() { return colors.indicator; });
 
 			g_indicators.exit().remove();
 			
 			if (firstLoad){
 				firstLoad = false;
-			};
+			}
 
 			return sonar;
 		};
@@ -319,12 +320,12 @@
 		 * Update - recalculates parameters like viewport dimension, reset scales etc. 
 		 * and then renders the viz. Useful in cases like resizing of viewport.
 		 */
-		sonar.update = function(rData){
+		sonar.update = function(){
 			
 			if(isResponsive){
 				// Recalculate and set new viz dimensions
 				sonar.reInit();	
-			};
+			}
 						
 			// render the viz
 			// also does data updates
@@ -353,103 +354,103 @@
 			return sonar;
 		};
 		sonar.isResponsive = function(_){
-			if (!arguments.length) { return isResponsive; };
+			if (!arguments.length) { return isResponsive; }
 			isResponsive = _;
 			return sonar;
 		};
 
 		sonar.headingPath = function(_){
-			if (!arguments.length) { return headingPath; };
+			if (!arguments.length) { return headingPath; }
 			headingPath = _;
 			return sonar;
 		};
 
 		sonar.detectionPath = function(_){
-			if (!arguments.length) { return detectionPath; };
+			if (!arguments.length) { return detectionPath; }
 			detectionPath = _;
 			return sonar;
 		};
 
 		sonar.xScale = function(_){
-			if (!arguments.length) { return xScale; };
+			if (!arguments.length) { return xScale; }
 			xScale = _;
 			return sonar;
 		};
 
 		sonar.xDomain = function(_){
-			if (!arguments.length) { return xDomain; };
+			if (!arguments.length) { return xDomain; }
 			xDomain = _;
 			return sonar;
 		};
 
 		sonar.xTickValues = function(_){
-			if (!arguments.length) { return xTickValues; };
+			if (!arguments.length) { return xTickValues; }
 			xTickValues = _;
 			return sonar;
 		};
 
 		sonar.xTickFormat = function(_){
-			if (!arguments.length) { return xTickFormat; };
+			if (!arguments.length) { return xTickFormat; }
 			xTickFormat = _;
 			return sonar;
 		};
 
 		sonar.xTickFormatInverse = function(_){
-			if (!arguments.length) { return xTickFormatInverse; };
+			if (!arguments.length) { return xTickFormatInverse; }
 			xTickFormatInverse = _;
 			return sonar;
 		};
 
 		sonar.yScale = function(_){
-			if (!arguments.length) { return yScale; };
+			if (!arguments.length) { return yScale; }
 			yScale = _;
 			return sonar;
 		};
 
 		sonar.headingKeys = function(_){
-			if (!arguments.length) { return headingKeys; };
+			if (!arguments.length) { return headingKeys; }
 			headingKeys = _;
 			return sonar;
 		};
 
 		sonar.detectionKeys = function(_){
-			if (!arguments.length) { return detectionKeys; };
+			if (!arguments.length) { return detectionKeys; }
 			detectionKeys = _;
 			return sonar;
 		};
 
 		sonar.purgeOldData = function(_){
-			if (!arguments.length) { return purge_old_data; };
+			if (!arguments.length) { return purge_old_data; }
 			purge_old_data = _;
 			return sonar;
 		};
 
 		sonar.dataAge = function(_){
-			if (!arguments.length) { return dataAge; };
+			if (!arguments.length) { return dataAge; }
 			dataAge = _;
 			return sonar;
 		};
 
 		sonar.transitionDuration = function(_){
-			if (!arguments.length) { return transitionDuration; };
+			if (!arguments.length) { return transitionDuration; }
 			transitionDuration = _;
 			return sonar;
 		};
 
 		sonar.colors = function(_){
-			if (!arguments.length) { return colors; };
+			if (!arguments.length) { return colors; }
 			colors = _;
 			return sonar;
 		};
 
 		sonar.addDetection = function(_){
-			if (!arguments.length) { return false; };
+			if (!arguments.length) { return false; }
 			sonar.addDatapoint( _map_detections, _ );
 			return sonar;
 		};
 
 		sonar.addHeading = function(_){
-			if (!arguments.length) { return false; };
+			if (!arguments.length) { return false; }
 			sonar.addDatapoint( _map_heading, _ );
 			return sonar;
 		};
@@ -474,7 +475,7 @@
 		          strength: data_row.strength ? data_row.strength : null
 		        }]
 		      );
-		    };
+		    }
 
 		    _date_array.push( data_row.time );
 
@@ -486,15 +487,15 @@
 		        
 		        if ( (now - new Date(_d[0].date).getTime() ) > dataAge )  {
 		          //_d.splice(0, 1);
-		        };
+		        }
 
 		      });
 
 		      if ( (now - new Date(_date_array[0]).getTime() ) > dataAge ) {
 		        _date_array.splice(0,1);
-		      };
+		      }
 
-		    };
+		    }
 
 		    // update viz
 		    sonar.update();
