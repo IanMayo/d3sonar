@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <style type="text/css">
+      #viz-major{
+        height: 450px;
+      }
+      #viz-minor{
+        height: 250px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="viz_container">
+      <div id="viz-major"></div>
+      <div id="viz-minor"></div>
+      <div id="legend"></div>
+      
+      <input id="data_updation_interval" type="text" value="1000">
+      <button id="btn_data_updation_interval">Update</button>
+      
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.3/d3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/d3.sonar.js"></script>
+
+    <script type="text/javascript">
+
+      var sonar_major_el = document.querySelector("#viz-major");
+      var sonar_minor_el = document.querySelector("#viz-minor");
+
+      var MINOR_TIME_JAR = 30 * 1000; // 30 seconds
+
+      var UPDATE_STEP = 2000; // 2 seconds
+
+      var colors = {
+            indicator: "#aace00",
+            heading: "#1A68DB"
+          }
+
+      function x_special_case(d) {
+        return (d <= 180) ? ((d+180) === 360 ? 0: (d+180)) : d-180;
+      }
+      function x_special_case_inverse(d) {
+        var _d = (d <= 180) ? d+180 : d-180;
+      //  console.log(d,_d)
+        return _d;
+      }
+
+      // Major Viz
+      var sonar_major_viz = d3.sonar()
+                        .container_el(sonar_major_el)
+                        .xTickValues([0,45,90,135,180,225,270,315,360])
+                        .xTickFormat(
+                          function (d) {
+                            return (d <= 180) ? ((d+180) === 360 ? 0: (d+180)) : d-180;
+                          }
+                        )
+                        .xTickFormatInverse(
+                          function (d) {
+                            return (d <= 180) ? d+180 : d-180;
+                          }
+                        )
+                        .yTicks(8)
+                        .headingKeys({
+                          x: 'degree',
+                          y: 'date'
+                        })
+                        .detectionKeys({
+                          x: 'degree',
+                          y: 'date'
+                        })
+                        .margin({top: 40, left: 100, bottom: 0, right: 50})
+                        .dataAge(1000)  // 1 sec
+                        .colors(colors)
+                        .xAxisLabel("");
+
+      // Minor Viz
+      var sonar_minor_viz = d3.sonar()
+                        .container_el(sonar_minor_el)
+                        .xTickValues([0,45,90,135,180,225,270,315,360])
+                        .xTickFormat(
+                          function (d) {
+                            return (d <= 180) ? ((d+180) === 360 ? 0: (d+180)) : d-180;
+                          }
+                        )
+                        .xTickFormatInverse(
+                          function (d) {
+                            return (d <= 180) ? d+180 : d-180;
+                          }
+                        )
+                        .yTicks(3)
+                        .headingKeys({
+                          x: 'degree',
+                          y: 'date'
+                        })
+                        .showXAxis(false)
+                        .margin({top: 0, left: 100, bottom: 50, right: 50})
+                        .detectionKeys({
+                          x: 'degree',
+                          y: 'date'
+                        })
+                        .dataAge(MINOR_TIME_JAR)
+                        .colors(colors);
+
+      var active_timers = [],
+          data_updation_interval = 1000;  // in milliseconds
+
+      // Returns a random integer between min and max
+      // Using Math.round() will give you a non-uniform distribution!
+      function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function _t_step(n) {
+        return new Date( _t_step_init + n*UPDATE_STEP );
+      }
+      
+      var _t_step_init;
+
+      function setDataUpdateRoutine(argument) {
+        _t_step_init = new Date().getTime();
+
+        var i = 0, j = 0, k = 0, l = 0;
+        active_timers.push( 
+          setInterval(function(){
+            addHeading( _t_step(++i), getRandomInt(110,150) );
+          }, data_updation_interval )
+        );
+
+        active_timers.push( 
+          setInterval(function(){
+            addDetection(_t_step(++j), 'New Delhi', getRandomInt(110,120), getRandomInt(1,10)  );
+          }, data_updation_interval )
+        );
+
+        active_timers.push(
+          setInterval(function(){
+            addDetection(_t_step(++k), 'Bangalore', getRandomInt(140,150), getRandomInt(1,10)  );
+          }, data_updation_interval)
+        );
+
+        active_timers.push( 
+          setInterval(function(){
+            addDetection(_t_step(++l), 'Vadodara', getRandomInt(130,140), getRandomInt(1,10)  );
+          }, data_updation_interval)
+        );
+
+      }
+
+      function addHeading(time, bearing) {
+    
+        var data = {
+            name: 'Heading',
+            time: new Date(time),
+            value: bearing
+        }
+
+        sonar_major_viz
+          .purgeOldData(true)
+          .addHeading(data);
+
+        sonar_minor_viz
+          .purgeOldData(true)
+          .addHeading(data);
+
+      }
+
+      function addDetection(time, seriesName, bearing, strength){
+        
+        var data = {
+            name: seriesName,
+            time: new Date(time),
+            value: bearing,
+            strength: strength
+        }
+
+        sonar_major_viz
+          .purgeOldData(true)
+          .addDetection(data);
+
+        sonar_minor_viz
+          .purgeOldData(true)
+          .addDetection(data);
+
+      }
+
+      $("#btn_data_updation_interval").on("click", function(e){
+        // clear interval
+        active_timers.forEach(function(t){
+          clearInterval(t);
+        });
+        active_timers = [];
+        data_updation_interval = +$("#data_updation_interval").val();
+        setDataUpdateRoutine();
+      });
+
+      // begin
+      sonar_major_viz();
+      sonar_minor_viz();
+      // update dataset
+      setDataUpdateRoutine();
+
+      $(window).resize(function(e){
+        resize();
+      });
+
+      function resize() {
+         // make sure major viz is 75% of total height and minor viz is 25%
+        var h = $(window).height();
+        
+        $("#viz-major").height( Math.floor(h*0.75) );
+        $("#viz-minor").height( Math.floor(h*0.25) );
+      }
+
+      resize();
+
+    </script>
+
+  </body>
+</html>

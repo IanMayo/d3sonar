@@ -27,18 +27,24 @@
 	d3.sonar =	function(){
 
 		var container_el,	// JavaScript ref to element which will considered to calculate viz height & width. By default, its the viz wrapper element. 
-			transitionDuration = 750,
+			transitionDuration = 0,
+			chart,
 			xDomain = [0, 360],
 			xTickValues = [0,45,90,135,180,225,270,315,360],
 			xTickFormat = function(d){	return d;	},
 			xTickFormatInverse = function(d){	return d;	},
 			xScale = d3.scale.linear().domain(xDomain),
 			xAxis,
+			showXAxis = true,
+			xAxisLabel = "Time",
+			showYAxis = true,
+			yAxisLabel = "Degree º",
 			gxAxis,
 			yScale = d3.time.scale(),
 			yAxis,
+			yTicks = 5,
 			gyAxis,
-			yAxisFormat = d3.time.format("%H:%M:%S:%L"),
+			yAxisFormat = d3.time.format("%H:%M:%S"),	// %L
 			gMain,
 			strengthScale = function(){},
 			headingPath = function(){},
@@ -66,7 +72,8 @@
 	            indicator: "#aace00",
 	            heading: "#1A68DB"
 	        },
-			mainClipPath;
+			mainClipPath,
+			mainClipPathID = "clip-"+ Math.round(new Date().getTime()*Math.random());
 		
 		function sonar(){
 			
@@ -74,7 +81,7 @@
 		
 			sonar.render();
 		
-		};
+		}
 		
 		/**
 		 * Do first time initiation settings; called only once
@@ -83,7 +90,7 @@
 			
 			//apply_settings(options, opts);
 			// apend the svg to container element
-			var chart = d3.select(container_el).append("svg")
+			chart = d3.select(container_el).append("svg")
 		       .attr("class", "chart")
 		       .append("g")
 		       .attr("transform","translate("+margin.left+","+margin.top+")");
@@ -99,7 +106,7 @@
 			dimension = {
 				width: width,
 				height: height
-			};
+			}
 
 			xScale
 				.domain(xDomain)
@@ -115,6 +122,7 @@
 
 			yAxis = d3.svg.axis()
 			    .scale(yScale)
+			    .ticks(yTicks)
 			    .tickFormat(function(d){ 
 			      return yAxisFormat(d) ; 
 			    })
@@ -129,7 +137,7 @@
 			
 		    // Add the clip path.
 			mainClipPath = chart.append("clipPath")
-					.attr("id", "clip")
+					.attr("id", mainClipPathID)
 				.append("rect")
 					.attr("width", width)
 					.attr("height", height);
@@ -147,7 +155,7 @@
 			      .attr("y", 0)
 			      .attr("dy", "1.71em")
 			      .style("text-anchor", "end")
-			      .text("Degree º");
+			      .text(yAxisLabel);
 
 			gyAxis = chart.append("g")
 			      .attr("class", "y axis")
@@ -161,7 +169,7 @@
 			      .attr("dy", ".71em")
 			      .attr("dx", "2.71em")
 			      .style("text-anchor", "end")
-			      .text("Time");
+			      .text(xAxisLabel);
 
 			gMain = chart.append("g")
 						.classed("gMain",true);
@@ -176,8 +184,14 @@
                   .y(function(d) { return yScale(d[detectionKeys.y]); })
                   .x(function(d) { return xScale(xTickFormatInverse(d[detectionKeys.x])); });
 
+
+            if(isResponsive){
+
+            	setInterval(sonar.reInit, 1000);
+            }
+
 			return sonar;
-		};
+		}
 
 		/**
 		 * Re calculates basic configuration parameters of the viz
@@ -185,10 +199,8 @@
 		 * Usage - Can be called before the viz needs to be redrawn 
 		 * to conform to current viewport
 		 */
-		sonar.reInit = function(rData){
-			
-			defaultHeight = $(window).height() * 0.8;
-			
+		sonar.reInit = function(){
+
 			width = container_el.getBoundingClientRect().width;
 			height = container_el.getBoundingClientRect().height;
 			
@@ -198,7 +210,7 @@
 			dimension = {
 				width: width,
 				height: height
-			};
+			}
 
 			// re-intialize scales
 			xScale.range([0, width]);
@@ -207,70 +219,54 @@
 				.domain(d3.extent(_date_array))
 				.range([height, 0]);
 
-		};
-		
-		/**
-		 * Render the chart viz with current settings
-		 */
-		sonar.render = function(rData){
+			// recalculate no. of ticks automagically
+			// NOTE - this is overwriting the API 
+			yTicks = Math.ceil( height/70 ); // 70 is a magical number
+			yAxis.ticks(yTicks);
 
-			var tDuration = transitionDuration;
-			
-			var chart = d3.select(container_el).select("g")
-			
-			width = dimension.width;
-			height = dimension.height;
-			
 			// only update if chart size has changed
-		    if ((_prevWidth != width) ||
+		    if ( (_prevWidth != width) ||
 		      (_prevHeight != height)) {
 
 				_prevWidth = width;
 				_prevHeight = height;
 				
-				chart.transition()
-					.duration(tDuration)
+				chart
 					.attr("width", width)
 					.attr("height", height);
 
-				mainClipPath.transition()
-					.duration(tDuration)
+				mainClipPath
 					.attr("width", width)
 					.attr("height", height);
 
 				gxAxis
 				    .select(".axis-unit")
-				    .transition()
-					.duration(tDuration)
 				    .attr("transform", "translate("+width+",0)");
 
 				gyAxis
-				    .select(".axis-unit")
-				    .transition()
-					.duration(tDuration)
+				    .select(".axis-unit")				    
 				    .attr("transform", "translate(0,"+height+")rotate(-90)");
-			};
-
-			chart
-				.transition()
-				.duration(tDuration)
-				.attr("transform","translate("+margin.left+","+margin.top+")");
-
-			xScale.range([0, width]);
-			yScale.range([height,0]);
-            
-			// update dataset
-			yScale.domain(d3.extent(_date_array) );//.nice();
+			}
 
 			gyAxis
-				.transition()
-				.duration(tDuration)
+				.style('opacity', showYAxis ? 1 : 0)
 				.call(yAxis);
 
 			gxAxis
-				.transition()
-				.duration(tDuration)
+				.style('opacity', showXAxis ? 1 : 0)
 				.call(xAxis);
+
+		}
+		
+		/**
+		 * Render the chart viz with current settings
+		 */
+		sonar.render = function(){
+
+			var tDuration = transitionDuration;
+			
+			width = dimension.width;
+			height = dimension.height;
 
 			// plot heading
 			var heading = gMain.selectAll(".line")
@@ -278,7 +274,7 @@
 
 			heading
 				.enter().append("path")
-				.attr("clip-path", "url(#clip)")
+				.attr("clip-path", "url(#"+mainClipPathID+")")
 				.attr("class", "line");
 
 			heading
@@ -295,7 +291,7 @@
 
 			g_indicators
 				.enter().append("path")
-				.attr("clip-path", "url(#clip)")
+				.attr("clip-path", "url(#"+mainClipPathID+")")
 				.attr("class", "line");
 
 			g_indicators
@@ -308,10 +304,10 @@
 			
 			if (firstLoad){
 				firstLoad = false;
-			};
+			}
 
 			return sonar;
-		};
+		}
 		
 		
 		/**
@@ -319,17 +315,14 @@
 		 * Update - recalculates parameters like viewport dimension, reset scales etc. 
 		 * and then renders the viz. Useful in cases like resizing of viewport.
 		 */
-		sonar.update = function(rData){
+		sonar.update = function(){
 			
-			if(isResponsive){
-				// Recalculate and set new viz dimensions
-				sonar.reInit();	
-			};
-						
+			sonar.reInit();	
+									
 			// render the viz
 			// also does data updates
 			sonar.render();
-		};
+		}
 
 
 		/**
@@ -339,120 +332,150 @@
 			if (!arguments.length) return container_el;
 			container_el = _;
 			return sonar;
-		};
+		}
 		
 		sonar.data = function(value){
 			if(!arguments.length) return data;
 			data = value;
 			return sonar;
-		};
+		}
 		
 		sonar.margin = function (_) {
 			if (!arguments.length) return margin;
 			margin = _;
 			return sonar;
-		};
+		}
 		sonar.isResponsive = function(_){
-			if (!arguments.length) { return isResponsive; };
+			if (!arguments.length) { return isResponsive; }
 			isResponsive = _;
 			return sonar;
-		};
+		}
 
 		sonar.headingPath = function(_){
-			if (!arguments.length) { return headingPath; };
+			if (!arguments.length) { return headingPath; }
 			headingPath = _;
 			return sonar;
-		};
+		}
 
 		sonar.detectionPath = function(_){
-			if (!arguments.length) { return detectionPath; };
+			if (!arguments.length) { return detectionPath; }
 			detectionPath = _;
 			return sonar;
-		};
+		}
 
 		sonar.xScale = function(_){
-			if (!arguments.length) { return xScale; };
+			if (!arguments.length) { return xScale; }
 			xScale = _;
 			return sonar;
-		};
+		}
 
 		sonar.xDomain = function(_){
-			if (!arguments.length) { return xDomain; };
+			if (!arguments.length) { return xDomain; }
 			xDomain = _;
 			return sonar;
-		};
+		}
 
 		sonar.xTickValues = function(_){
-			if (!arguments.length) { return xTickValues; };
+			if (!arguments.length) { return xTickValues; }
 			xTickValues = _;
 			return sonar;
-		};
+		}
 
 		sonar.xTickFormat = function(_){
-			if (!arguments.length) { return xTickFormat; };
+			if (!arguments.length) { return xTickFormat; }
 			xTickFormat = _;
 			return sonar;
-		};
+		}
 
 		sonar.xTickFormatInverse = function(_){
-			if (!arguments.length) { return xTickFormatInverse; };
+			if (!arguments.length) { return xTickFormatInverse; }
 			xTickFormatInverse = _;
 			return sonar;
-		};
+		}
+
+		sonar.xAxisLabel = function(_){
+			if (!arguments.length) { return xAxisLabel; }
+			xAxisLabel = _;
+			return sonar;
+		}
+
+		sonar.showXAxis = function(_){
+			if (!arguments.length) { return showXAxis; }
+			showXAxis = _;
+			return sonar;
+		}
+
+		sonar.showYAxis = function(_){
+			if (!arguments.length) { return showXAxis; }
+			showXAxis = _;
+			return sonar;
+		}
+
+		sonar.yAxisLabel = function(_){
+			if (!arguments.length) { return yAxisLabel; }
+			yAxisLabel = _;
+			return sonar;
+		}
 
 		sonar.yScale = function(_){
-			if (!arguments.length) { return yScale; };
+			if (!arguments.length) { return yScale; }
 			yScale = _;
 			return sonar;
-		};
+		}
+
+		sonar.yTicks = function(_){
+			if (!arguments.length) { return yTicks; }
+			yTicks = _;
+			return sonar;
+		}
 
 		sonar.headingKeys = function(_){
-			if (!arguments.length) { return headingKeys; };
+			if (!arguments.length) { return headingKeys; }
 			headingKeys = _;
 			return sonar;
-		};
+		}
 
 		sonar.detectionKeys = function(_){
-			if (!arguments.length) { return detectionKeys; };
+			if (!arguments.length) { return detectionKeys; }
 			detectionKeys = _;
 			return sonar;
-		};
+		}
 
 		sonar.purgeOldData = function(_){
-			if (!arguments.length) { return purge_old_data; };
+			if (!arguments.length) { return purge_old_data; }
 			purge_old_data = _;
 			return sonar;
-		};
+		}
 
 		sonar.dataAge = function(_){
-			if (!arguments.length) { return dataAge; };
+			if (!arguments.length) { return dataAge; }
 			dataAge = _;
 			return sonar;
-		};
+		}
 
 		sonar.transitionDuration = function(_){
-			if (!arguments.length) { return transitionDuration; };
+			if (!arguments.length) { return transitionDuration; }
 			transitionDuration = _;
 			return sonar;
-		};
+		}
 
 		sonar.colors = function(_){
-			if (!arguments.length) { return colors; };
+			if (!arguments.length) { return colors; }
 			colors = _;
 			return sonar;
-		};
+		}
 
 		sonar.addDetection = function(_){
-			if (!arguments.length) { return false; };
+			if (!arguments.length) { return false; }
 			sonar.addDatapoint( _map_detections, _ );
 			return sonar;
-		};
+		}
 
 		sonar.addHeading = function(_){
-			if (!arguments.length) { return false; };
+			if (!arguments.length) { return false; }
 			sonar.addDatapoint( _map_heading, _ );
 			return sonar;
-		};
+		}
 
 		sonar.addDatapoint = function(dataset_map, data_row){
    
@@ -474,7 +497,7 @@
 		          strength: data_row.strength ? data_row.strength : null
 		        }]
 		      );
-		    };
+		    }
 
 		    _date_array.push( data_row.time );
 
@@ -486,24 +509,24 @@
 		        
 		        if ( (now - new Date(_d[0].date).getTime() ) > dataAge )  {
 		          //_d.splice(0, 1);
-		        };
+		        }
 
 		      });
 
 		      if ( (now - new Date(_date_array[0]).getTime() ) > dataAge ) {
 		        _date_array.splice(0,1);
-		      };
+		      }
 
-		    };
+		    }
 
 		    // update viz
 		    sonar.update();
 
-		};
+		}
 		
 		return sonar;
 		
-	};
+	}
   
 })();
 
@@ -511,7 +534,7 @@ d3.selection.prototype.moveToFront = function() {
   return this.each(function(){
     this.parentNode.appendChild(this);
   });
-};
+}
 d3.selection.prototype.moveToBack = function() { 
     return this.each(function() { 
         var firstChild = this.parentNode.firstChild; 
@@ -519,4 +542,4 @@ d3.selection.prototype.moveToBack = function() {
             this.parentNode.insertBefore(this, firstChild); 
         } 
     }); 
-};
+}

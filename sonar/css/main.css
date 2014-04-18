@@ -12,6 +12,11 @@ body {
 .axis text {
   fill: #444;
 }
+
+.x.axis{
+  opacity: 0;
+}
+
 .x.axis path {
 
 }
