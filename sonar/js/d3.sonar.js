@@ -36,9 +36,9 @@
 			xScale = d3.scale.linear().domain(xDomain),
 			xAxis,
 			showXAxis = true,
-			xAxisLabel = "Time",
+			yAxisLabel = "Time",
 			showYAxis = true,
-			yAxisLabel = "Degree º",
+			xAxisLabel = "Degree º",
 			gxAxis,
 			yScale = d3.time.scale(),
 			yAxis,
@@ -146,8 +146,7 @@
 
 			gxAxis = chart.append("g")
 				.attr("class", "x axis")
-				.attr("transform", "translate(0,0)")
-				.call(xAxis);
+				.attr("transform", "translate(0,0)");
 
 			gxAxis
 			    .append("text")
@@ -156,11 +155,12 @@
 			      .attr("y", 0)
 			      .attr("dy", "1.71em")
 			      .style("text-anchor", "end")
-			      .text(yAxisLabel);
+			      .text(xAxisLabel);
 
 			gyAxis = chart.append("g")
 			      .attr("class", "y axis")
-			      .call(yAxis);
+			      .style("opacity", 0);	// hidden untill data is passed
+			      
 
 			gyAxis
 			    .append("text")
@@ -170,7 +170,7 @@
 			      .attr("dy", ".71em")
 			      .attr("dx", "2.71em")
 			      .style("text-anchor", "end")
-			      .text(xAxisLabel);
+			      .text(yAxisLabel);
 
 			gMain = chart.append("g")
 						.classed("gMain",true);
@@ -261,9 +261,12 @@
 				    .attr("transform", "translate(0,"+height+")rotate(-90)");
 			}
 
-			gyAxis
-				.style('opacity', showYAxis ? 1 : 0)
-				.call(yAxis);
+			// delay axes creation till data is available
+			if (_date_array.length) {
+				gyAxis
+					.style('opacity', showYAxis ? 1 : 0)
+					.call(yAxis);
+			};
 
 			gxAxis
 				.style('opacity', showXAxis ? 1 : 0)

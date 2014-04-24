@@ -48,3 +48,13 @@ body {
 .legend {
   cursor: pointer;
 }
+
+/* style for 2 scaled sonar */
+.viz-major{
+  margin-top: -5px; /* This adjusts the 2 graph scales */
+  z-index: 5;
+}
+.viz-minor{
+  z-index: 10;
+  background: #ffffff;
+}

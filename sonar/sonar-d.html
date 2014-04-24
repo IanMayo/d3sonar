@@ -6,6 +6,7 @@
     <style type="text/css">
       #viz-major{
         height: 450px;
+        margin-top: -5px;
       }
       #viz-minor{
         height: 250px;
@@ -15,8 +16,8 @@
   <body>
 
     <div id="viz_container">
-      <div id="viz-minor"></div>
-      <div id="viz-major"></div>
+      <div id="viz-minor" class="viz-minor"></div>
+      <div id="viz-major" class="viz-major"></div>
       <div id="legend"></div>
       
       <input id="data_updation_interval" type="text" value="1000">
@@ -33,13 +34,16 @@
       var sonar_minor_el = document.querySelector("#viz-minor");
 
       var PAST_TIME_JAR = 19 * 60 * 1000; // 19 minutes in milliseconds
-      var LIVE_TIME_JAR = 1 * 60 * 1000; // 1 minute in milliseconds
+      var LIVE_TIME_JAR = 1 * 20 * 1000; // 1 minute in milliseconds
 
       var past_time_jar_set = [];
 
       var dataset_keys = d3.set([]);
 
       var UPDATE_STEP = 2000; // 2 seconds
+
+      var active_timers = [],
+        data_updation_interval = 200;  // in milliseconds
 
       var FIRST_RUN_TIME;
 
@@ -80,10 +84,10 @@
                           x: 'degree',
                           y: 'date'
                         })
-                        .margin({top: 40, left: 100, bottom: 0, right: 50})
+                        .margin({top: 40, left: 100, bottom: 5, right: 50})
                         .dataAge(LIVE_TIME_JAR)
                         .colors(colors)
-                        .xAxisLabel("");
+                        .yAxisLabel("");
 
       // Major Viz
       var sonar_major_viz = d3.sonar()
@@ -112,9 +116,6 @@
                         })
                         .dataAge(PAST_TIME_JAR)
                         .colors(colors);
-
-      var active_timers = [],
-          data_updation_interval = 2000;  // in milliseconds
 
       // Returns a random integer between min and max
       // Using Math.round() will give you a non-uniform distribution!
