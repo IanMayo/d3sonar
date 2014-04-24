@@ -15,8 +15,8 @@
   <body>
 
     <div id="viz_container">
-      <div id="viz-major"></div>
       <div id="viz-minor"></div>
+      <div id="viz-major"></div>
       <div id="legend"></div>
       
       <input id="data_updation_interval" type="text" value="1000">
@@ -32,9 +32,16 @@
       var sonar_major_el = document.querySelector("#viz-major");
       var sonar_minor_el = document.querySelector("#viz-minor");
 
-      var MINOR_TIME_JAR = 30 * 1000; // 30 seconds
+      var PAST_TIME_JAR = 19 * 60 * 1000; // 19 minutes in milliseconds
+      var LIVE_TIME_JAR = 1 * 60 * 1000; // 1 minute in milliseconds
+
+      var past_time_jar_set = [];
+
+      var dataset_keys = d3.set([]);
 
       var UPDATE_STEP = 2000; // 2 seconds
+
+      var FIRST_RUN_TIME;
 
       var colors = {
             indicator: "#aace00",
@@ -50,9 +57,9 @@
         return _d;
       }
 
-      // Major Viz
-      var sonar_major_viz = d3.sonar()
-                        .container_el(sonar_major_el)
+      // Minor Viz
+      var sonar_minor_viz = d3.sonar()
+                        .container_el(sonar_minor_el)/*
                         .xTickValues([0,45,90,135,180,225,270,315,360])
                         .xTickFormat(
                           function (d) {
@@ -63,8 +70,8 @@
                           function (d) {
                             return (d <= 180) ? d+180 : d-180;
                           }
-                        )
-                        .yTicks(8)
+                        )*/
+                        .yTicks(4)
                         .headingKeys({
                           x: 'degree',
                           y: 'date'
@@ -74,13 +81,13 @@
                           y: 'date'
                         })
                         .margin({top: 40, left: 100, bottom: 0, right: 50})
-                        .dataAge(1000)  // 1 sec
+                        .dataAge(LIVE_TIME_JAR)
                         .colors(colors)
                         .xAxisLabel("");
 
-      // Minor Viz
-      var sonar_minor_viz = d3.sonar()
-                        .container_el(sonar_minor_el)
+      // Major Viz
+      var sonar_major_viz = d3.sonar()
+                        .container_el(sonar_major_el)/*
                         .xTickValues([0,45,90,135,180,225,270,315,360])
                         .xTickFormat(
                           function (d) {
@@ -91,8 +98,8 @@
                           function (d) {
                             return (d <= 180) ? d+180 : d-180;
                           }
-                        )
-                        .yTicks(3)
+                        )*/
+                        .yTicks(8)
                         .headingKeys({
                           x: 'degree',
                           y: 'date'
@@ -103,11 +110,11 @@
                           x: 'degree',
                           y: 'date'
                         })
-                        .dataAge(MINOR_TIME_JAR)
+                        .dataAge(PAST_TIME_JAR)
                         .colors(colors);
 
       var active_timers = [],
-          data_updation_interval = 1000;  // in milliseconds
+          data_updation_interval = 2000;  // in milliseconds
 
       // Returns a random integer between min and max
       // Using Math.round() will give you a non-uniform distribution!
@@ -121,8 +128,12 @@
       
       var _t_step_init;
 
-      function setDataUpdateRoutine(argument) {
+      function setDataUpdateRoutine(reset) {
         _t_step_init = new Date().getTime();
+
+        if (reset) {
+          FIRST_RUN_TIME = _t_step_init;
+        };
 
         var i = 0, j = 0, k = 0, l = 0;
         active_timers.push( 
@@ -149,6 +160,10 @@
           }, data_updation_interval)
         );
 
+        active_timers.push( 
+          setInterval( add_data_to_major_viz, data_updation_interval)
+        );
+
       }
 
       function addHeading(time, bearing) {
@@ -156,17 +171,16 @@
         var data = {
             name: 'Heading',
             time: new Date(time),
-            value: bearing
+            value: bearing,
+            is_heading: true
         }
 
-        sonar_major_viz
-          .purgeOldData(true)
-          .addHeading(data);
+        // add to dataset
+        past_time_jar_set.push(data);
 
         sonar_minor_viz
           .purgeOldData(true)
           .addHeading(data);
-
       }
 
       function addDetection(time, seriesName, bearing, strength){
@@ -175,17 +189,43 @@
             name: seriesName,
             time: new Date(time),
             value: bearing,
-            strength: strength
+            strength: strength,
+            is_detection: true
         }
 
-        sonar_major_viz
-          .purgeOldData(true)
-          .addDetection(data);
+        // add to dataset
+        past_time_jar_set.push(data);
 
         sonar_minor_viz
           .purgeOldData(true)
           .addDetection(data);
+      }
 
+      function add_data_to_major_viz(){
+          var latest = d3.max( past_time_jar_set, function(d){ return d.time; });
+
+          // data points which need to go to past data viz
+          var push_past_time_jar_set = past_time_jar_set.filter(function(d){ 
+            return ( ( new Date(latest).getTime() - new Date(d.time).getTime() ) >= LIVE_TIME_JAR );
+          });
+          
+          past_time_jar_set = past_time_jar_set.filter(function(d){ 
+            return ( ( new Date(latest).getTime() - new Date(d.time).getTime() ) < LIVE_TIME_JAR );
+          });
+
+          push_past_time_jar_set.forEach(function(d,i){
+            
+            if ( d.is_heading ) {
+              sonar_major_viz
+                .purgeOldData(true)
+                .addHeading(d);
+            }else{
+              sonar_major_viz
+                .purgeOldData(true)
+                .addDetection(d);
+            };
+
+          });
       }
 
       $("#btn_data_updation_interval").on("click", function(e){
@@ -195,14 +235,14 @@
         });
         active_timers = [];
         data_updation_interval = +$("#data_updation_interval").val();
-        setDataUpdateRoutine();
+        setDataUpdateRoutine(true);
       });
 
       // begin
       sonar_major_viz();
       sonar_minor_viz();
       // update dataset
-      setDataUpdateRoutine();
+      setDataUpdateRoutine(true);
 
       $(window).resize(function(e){
         resize();
@@ -212,8 +252,8 @@
          // make sure major viz is 75% of total height and minor viz is 25%
         var h = $(window).height();
         
-        $("#viz-major").height( Math.floor(h*0.75) );
         $("#viz-minor").height( Math.floor(h*0.25) );
+        $("#viz-major").height( Math.floor(h*0.75) );
       }
 
       resize();

@@ -66,6 +66,7 @@
 			_prevWidth = 0,
 			_prevHeight = 0,
 			purge_old_data = true,
+			first_data = false,
 			dataAge = 30*1000,	// in milliseconds
 			_date_array = [],
 			colors = {
@@ -223,6 +224,18 @@
 			// NOTE - this is overwriting the API 
 			yTicks = Math.ceil( height/70 ); // 70 is a magical number
 			yAxis.ticks(yTicks);
+
+			// generate y tickvalues
+			// 1. get y extent
+			var _y_axis_u = Math.floor( (yScale.domain()[1].getTime() - yScale.domain()[0].getTime()) / yTicks ),
+				_y_tickValues = [];
+
+			for (var i = 0; i < yTicks; i++) {
+				_y_tickValues.push( new Date( yScale.domain()[0].getTime() + _y_axis_u*i ) );
+			};
+
+			// set tickvalues
+			yAxis.tickValues(_y_tickValues);
 
 			// only update if chart size has changed
 		    if ( (_prevWidth != width) ||
@@ -479,8 +492,6 @@
 
 		sonar.addDatapoint = function(dataset_map, data_row){
    
-		    var now = new Date().getTime();
-
 		    // check if key exists
 		    if ( dataset_map.has(data_row.name) ) {
 		      // add the data set
@@ -504,19 +515,17 @@
 		    if (purge_old_data) {
 		      var last_index = 0;
 		      // remove old dataset
-		      dataset_map.values().forEach(function(_d){
-		        last_index = 0;
-		        
-		        if ( (now - new Date(_d[0].date).getTime() ) > dataAge )  {
-		          //_d.splice(0, 1);
-		        }
+		      //dataset_map.values().forEach(function(_d, i){
+		      _date_array.forEach(function(_d, i){
+
+		        if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) > dataAge ) {
+			    	_date_array.splice(i,1);
+			    	dataset_map.values().splice(i,1);
+			    };
 
 		      });
 
-		      if ( (now - new Date(_date_array[0]).getTime() ) > dataAge ) {
-		        _date_array.splice(0,1);
-		      }
-
+		      //console.log(dataAge,_date_array.length);
 		    }
 
 		    // update viz
