@@ -215,10 +215,14 @@
 
 			// re-intialize scales
 			xScale.range([0, width]);
-			
-			yScale
-				.domain(d3.extent(_date_array))
-				.range([height, 0]);
+
+			var yScale_d0 = d3.min(_date_array);
+			if (yScale_d0) {
+				yScale
+					//.domain(d3.extent(_date_array))
+					.domain([yScale_d0, new Date( yScale_d0.getTime() + dataAge )])
+					.range([height, 0]);
+			};
 
 			// recalculate no. of ticks automagically
 			// NOTE - this is overwriting the API 
