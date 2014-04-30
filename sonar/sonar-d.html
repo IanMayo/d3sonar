@@ -33,8 +33,8 @@
       var sonar_major_el = document.querySelector("#viz-major");
       var sonar_minor_el = document.querySelector("#viz-minor");
 
-      var PAST_TIME_JAR = 19 * 60 * 1000; // 19 minutes in milliseconds
-      var LIVE_TIME_JAR = 1 * 20 * 1000; // 1 minute in milliseconds
+      var PAST_TIME_JAR = 30 * 60 * 1000; // 19 minutes in milliseconds
+      var LIVE_TIME_JAR = 1 * 60 * 1000; // 1 minute in milliseconds
 
       var past_time_jar_set = [];
 
@@ -43,7 +43,7 @@
       var UPDATE_STEP = 2000; // 2 seconds
 
       var active_timers = [],
-        data_updation_interval = 2;  // in milliseconds
+        data_updation_interval = 50;  // in milliseconds
 
       var FIRST_RUN_TIME;
 
@@ -57,7 +57,6 @@
       }
       function x_special_case_inverse(d) {
         var _d = (d <= 180) ? d+180 : d-180;
-      //  console.log(d,_d)
         return _d;
       }
 
@@ -114,7 +113,7 @@
                           x: 'degree',
                           y: 'date'
                         })
-                        .dataAge(PAST_TIME_JAR)
+                        .dataAge(-PAST_TIME_JAR)
                         .colors(colors);
 
       // Returns a random integer between min and max
@@ -201,7 +200,7 @@
           .purgeOldData(true)
           .addDetection(data);
       }
-
+      
       function add_data_to_major_viz(){
           var latest = d3.max( past_time_jar_set, function(d){ return d.time; });
 

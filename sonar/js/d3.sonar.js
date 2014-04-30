@@ -68,6 +68,7 @@
 			purge_old_data = true,
 			first_data = false,
 			dataAge = 30*1000,	// in milliseconds
+			_DATA_POINT_TIME_GAP = 0,	// difference between 2 data points on Y Axis
 			_date_array = [],
 			colors = {
 	            indicator: "#aace00",
@@ -218,10 +219,18 @@
 
 			var yScale_d0 = d3.min(_date_array);
 			if (yScale_d0) {
-				yScale
+
+				// if dataAge is negative
+				if (dataAge < 0 ) {
+					yScale
+					.domain([ new Date( yScale_d0.getTime() - dataAge*-1 ), yScale_d0])
+				}else{
+					yScale
 					//.domain(d3.extent(_date_array))
 					.domain([yScale_d0, new Date( yScale_d0.getTime() + dataAge )])
-					.range([height, 0]);
+				};
+
+				yScale.range([height, 0]);
 			};
 
 			// recalculate no. of ticks automagically
@@ -519,20 +528,36 @@
 
 		    _date_array.push( data_row.time );
 
+		    // calculate difference between 2 data points
+		    if ( dataAge < 0 && (!_DATA_POINT_TIME_GAP) && _date_array.length >= 2 ) {
+				_DATA_POINT_TIME_GAP = new Date(_date_array[_date_array.length-1]).getTime() - new Date(_date_array[0]).getTime();
+			};
+
 		    if (purge_old_data) {
 		      var last_index = 0;
 		      // remove old dataset
-		      //dataset_map.values().forEach(function(_d, i){
 		      _date_array.forEach(function(_d, i){
 
-		        if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) > dataAge ) {
-			    	_date_array.splice(i,1);
-			    	dataset_map.values().splice(i,1);
+		        // if dataAge is negative
+		        if (dataAge < 0 ) {
+		        	// for major viz
+		        		if (_DATA_POINT_TIME_GAP) {
+				    		if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) >= _DATA_POINT_TIME_GAP ) {
+					    		_date_array.splice(i,	1);
+						    	dataset_map.values().splice(i,1);
+						    }
+						}
+		        }else{	
+		        	// for minor viz
+		        	if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) > dataAge ) {
+				    	_date_array.splice(i,1);
+				    	dataset_map.values().splice(i,1);
+				    }
 			    };
+
 
 		      });
 
-		      //console.log(dataAge,_date_array.length);
 		    }
 
 		    // update viz
