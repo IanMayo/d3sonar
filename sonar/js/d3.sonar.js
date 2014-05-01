@@ -221,6 +221,7 @@
 			if (yScale_d0) {
 
 				// if dataAge is negative
+				/*
 				if (dataAge < 0 ) {
 					yScale
 					.domain([ new Date( yScale_d0.getTime() - dataAge*-1 ), yScale_d0])
@@ -229,6 +230,9 @@
 					//.domain(d3.extent(_date_array))
 					.domain([yScale_d0, new Date( yScale_d0.getTime() + dataAge )])
 				};
+				*/
+				yScale
+					.domain([ new Date( yScale_d0.getTime() - dataAge ), yScale_d0])
 
 				yScale.range([height, 0]);
 			};
@@ -529,7 +533,8 @@
 		    _date_array.push( data_row.time );
 
 		    // calculate difference between 2 data points
-		    if ( dataAge < 0 && (!_DATA_POINT_TIME_GAP) && _date_array.length >= 2 ) {
+		    //if ( dataAge < 0 && (!_DATA_POINT_TIME_GAP) && _date_array.length >= 2 ) {
+		    if ( (!_DATA_POINT_TIME_GAP) && _date_array.length >= 2 ) {
 				_DATA_POINT_TIME_GAP = new Date(_date_array[_date_array.length-1]).getTime() - new Date(_date_array[0]).getTime();
 			};
 
@@ -537,7 +542,7 @@
 		      var last_index = 0;
 		      // remove old dataset
 		      _date_array.forEach(function(_d, i){
-
+		      	/*
 		        // if dataAge is negative
 		        if (dataAge < 0 ) {
 		        	// for major viz
@@ -553,7 +558,14 @@
 				    	_date_array.splice(i,1);
 				    	dataset_map.values().splice(i,1);
 				    }
-			    };
+			    };*/
+
+			    if (_DATA_POINT_TIME_GAP) {
+		    		if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) >= _DATA_POINT_TIME_GAP ) {
+			    		_date_array.splice(i,	1);
+				    	dataset_map.values().splice(i,1);
+				    }
+				}
 
 
 		      });
