@@ -26,7 +26,7 @@
     </div>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.3/d3.min.js" charset="utf-8"></script>
-    <script type="text/javascript" src="js/d3.sonar.js"></script>
+    <script type="text/javascript" src="js/d3.sonar.js?v1"></script>
 
     <script type="text/javascript">
 
@@ -133,6 +133,10 @@
 
         if (reset) {
           FIRST_RUN_TIME = _t_step_init;
+
+          // set major viz's yDomain
+          sonar_major_viz.yDomain([FIRST_RUN_TIME - PAST_TIME_JAR, FIRST_RUN_TIME + LIVE_TIME_JAR ]);
+          sonar_major_viz();
         };
 
         var i = 0, j = 0, k = 0, l = 0;
@@ -239,7 +243,7 @@
       });
 
       // begin
-      sonar_major_viz();
+      //sonar_major_viz();
       sonar_minor_viz();
       // update dataset
       setDataUpdateRoutine(true);

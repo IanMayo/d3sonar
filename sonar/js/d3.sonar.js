@@ -41,6 +41,7 @@
 			xAxisLabel = "Degree º",
 			gxAxis,
 			yScale = d3.time.scale(),
+			yDomain,
 			yAxis,
 			yTicks = 5,
 			gyAxis,
@@ -114,6 +115,10 @@
 				.domain(xDomain)
 				.range([0, width]);
 
+			// if yDomain, show y axis
+			if (yDomain) {
+				yScale.domain(yDomain);	
+			}
 			yScale.range([height,0]);
 
 		    xAxis = d3.svg.axis()
@@ -160,8 +165,7 @@
 
 			gyAxis = chart.append("g")
 			      .attr("class", "y axis")
-			      .style("opacity", 0);	// hidden untill data is passed
-			      
+			      .style("opacity", yDomain === undefined ? 0 : 1 );	// hidden if yDomain is not initialized. Otherwise, will be shown automatically once data comes in.			      
 
 			gyAxis
 			    .append("text")
@@ -188,7 +192,6 @@
 
 
             if(isResponsive){
-
             	setInterval(sonar.reInit, 1000);
             }
 
@@ -219,23 +222,10 @@
 
 			var yScale_d0 = d3.min(_date_array);
 			if (yScale_d0) {
-
-				// if dataAge is negative
-				/*
-				if (dataAge < 0 ) {
-					yScale
-					.domain([ new Date( yScale_d0.getTime() - dataAge*-1 ), yScale_d0])
-				}else{
-					yScale
-					//.domain(d3.extent(_date_array))
-					.domain([yScale_d0, new Date( yScale_d0.getTime() + dataAge )])
-				};
-				*/
 				yScale
-					.domain([ new Date( yScale_d0.getTime() - dataAge ), yScale_d0])
-
-				yScale.range([height, 0]);
+					.domain([ new Date( yScale_d0.getTime() - dataAge ), yScale_d0]);
 			};
+			yScale.range([height, 0]);
 
 			// recalculate no. of ticks automagically
 			// NOTE - this is overwriting the API 
@@ -274,16 +264,13 @@
 				    .attr("transform", "translate("+width+",0)");
 
 				gyAxis
-				    .select(".axis-unit")				    
+				    .select(".axis-unit")
 				    .attr("transform", "translate(0,"+height+")rotate(-90)");
 			}
 
-			// delay axes creation till data is available
-			if (_date_array.length) {
-				gyAxis
-					.style('opacity', showYAxis ? 1 : 0)
-					.call(yAxis);
-			};
+			gyAxis
+				.style('opacity', showYAxis ? 1 : 0)
+				.call(yAxis);
 
 			gxAxis
 				.style('opacity', showXAxis ? 1 : 0)
@@ -341,7 +328,6 @@
 
 			return sonar;
 		}
-		
 		
 		/**
 		 * Update the chart;
@@ -456,6 +442,12 @@
 			return sonar;
 		}
 
+		sonar.yDomain = function(_){
+			if (!arguments.length) { return yDomain; }
+			yDomain = _;
+			return sonar;
+		}
+
 		sonar.yTicks = function(_){
 			if (!arguments.length) { return yTicks; }
 			yTicks = _;
@@ -533,7 +525,6 @@
 		    _date_array.push( data_row.time );
 
 		    // calculate difference between 2 data points
-		    //if ( dataAge < 0 && (!_DATA_POINT_TIME_GAP) && _date_array.length >= 2 ) {
 		    if ( (!_DATA_POINT_TIME_GAP) && _date_array.length >= 2 ) {
 				_DATA_POINT_TIME_GAP = new Date(_date_array[_date_array.length-1]).getTime() - new Date(_date_array[0]).getTime();
 			};
@@ -542,23 +533,6 @@
 		      var last_index = 0;
 		      // remove old dataset
 		      _date_array.forEach(function(_d, i){
-		      	/*
-		        // if dataAge is negative
-		        if (dataAge < 0 ) {
-		        	// for major viz
-		        		if (_DATA_POINT_TIME_GAP) {
-				    		if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) >= _DATA_POINT_TIME_GAP ) {
-					    		_date_array.splice(i,	1);
-						    	dataset_map.values().splice(i,1);
-						    }
-						}
-		        }else{	
-		        	// for minor viz
-		        	if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) > dataAge ) {
-				    	_date_array.splice(i,1);
-				    	dataset_map.values().splice(i,1);
-				    }
-			    };*/
 
 			    if (_DATA_POINT_TIME_GAP) {
 		    		if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) >= _DATA_POINT_TIME_GAP ) {
@@ -566,7 +540,6 @@
 				    	dataset_map.values().splice(i,1);
 				    }
 				}
-
 
 		      });
 
