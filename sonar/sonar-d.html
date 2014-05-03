@@ -40,10 +40,10 @@
 
       var dataset_keys = d3.set([]);
 
-      var UPDATE_STEP = 2000; // 2 seconds
+      var UPDATE_STEP = 20000; // 2 seconds
 
       var active_timers = [],
-        data_updation_interval = 50;  // in milliseconds
+        data_updation_interval = 2000;  // in milliseconds
 
       var FIRST_RUN_TIME;
 
@@ -86,7 +86,8 @@
                         .margin({top: 40, left: 100, bottom: 5, right: 50})
                         .dataAge(LIVE_TIME_JAR)
                         .colors(colors)
-                        .yAxisLabel("");
+                        .yAxisLabel("")
+                        .onclick(addSelectionListener);
 
       // Major Viz
       var sonar_major_viz = d3.sonar()
@@ -114,7 +115,8 @@
                           y: 'date'
                         })
                         .dataAge(PAST_TIME_JAR)
-                        .colors(colors);
+                        .colors(colors)
+                        .onclick(addSelectionListener);
 
       // Returns a random integer between min and max
       // Using Math.round() will give you a non-uniform distribution!
@@ -231,6 +233,14 @@
 
           });
       }
+
+      function addSelectionListener( listener ) {
+        setSource(listener);
+      };
+
+      function setSource (listener) {
+        console.log(listener);
+      };
 
       $("#btn_data_updation_interval").on("click", function(e){
         // clear interval

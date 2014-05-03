@@ -50,6 +50,7 @@
 			strengthScale = function(){},
 			headingPath = function(){},
 			detectionPath = function(){},
+			onclick = function(){},
 			headingKeys,
 			detectionKeys,
 			width,
@@ -295,7 +296,10 @@
 			heading
 				.enter().append("path")
 				.attr("clip-path", "url(#"+mainClipPathID+")")
-				.attr("class", "line");
+				.attr("class", "line")
+				.on("click", function(d){
+			    	onclick(d);
+			    })
 
 			heading
 				.attr("d", function(d) {
@@ -312,7 +316,10 @@
 			g_indicators
 				.enter().append("path")
 				.attr("clip-path", "url(#"+mainClipPathID+")")
-				.attr("class", "line");
+				.attr("class", "line")
+				.on("click", function(d){
+			    	onclick(d);
+			    })
 
 			g_indicators
 				.attr("d", function(d) {
@@ -487,6 +494,12 @@
 		sonar.colors = function(_){
 			if (!arguments.length) { return colors; }
 			colors = _;
+			return sonar;
+		}
+
+		sonar.onclick = function(_){
+			if (!arguments.length) { return onclick; }
+			onclick = _;
 			return sonar;
 		}
 
