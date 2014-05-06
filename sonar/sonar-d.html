@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="css/main.css">
     <style type="text/css">
+      
+      #viz-container{
+        display: block;
+        height: 450px;  /* initial height */
+        position: relative;
+      }
       #viz-major{
         height: 450px;
         margin-top: -5px;
@@ -15,7 +21,7 @@
   </head>
   <body>
 
-    <div id="viz_container">
+    <div id="viz-container">
       <div id="viz-minor" class="viz-minor"></div>
       <div id="viz-major" class="viz-major"></div>
       <div id="legend"></div>
@@ -83,7 +89,7 @@
                           x: 'degree',
                           y: 'date'
                         })
-                        .margin({top: 40, left: 100, bottom: 5, right: 50})
+                        .margin({top: 20, left: 100, bottom: 5, right: 50})
                         .dataAge(LIVE_TIME_JAR)
                         .colors(colors)
                         .yAxisLabel("")
@@ -109,7 +115,7 @@
                           y: 'date'
                         })
                         .showXAxis(false)
-                        .margin({top: 0, left: 100, bottom: 50, right: 50})
+                        .margin({top: 0, left: 100, bottom: 10, right: 50})
                         .detectionKeys({
                           x: 'degree',
                           y: 'date'
@@ -264,7 +270,11 @@
 
       function resize() {
          // make sure major viz is 75% of total height and minor viz is 25%
-        var h = $(window).height();
+        var h = $(window).height(); // this can be a parent container for e.g. viz-container
+
+        $("#viz-container").height( h*0.75 );  // let's always set this to be 75% of window height
+        
+        h = h*0.75;
         
         $("#viz-minor").height( Math.floor(h*0.25) );
         $("#viz-major").height( Math.floor(h*0.75) );
