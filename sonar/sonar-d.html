@@ -68,7 +68,7 @@
 
       // Minor Viz
       var sonar_minor_viz = d3.sonar()
-                        .container_el(sonar_minor_el)/*
+                        .container_el(sonar_minor_el)
                         .xTickValues([0,45,90,135,180,225,270,315,360])
                         .xTickFormat(
                           function (d) {
@@ -79,7 +79,7 @@
                           function (d) {
                             return (d <= 180) ? d+180 : d-180;
                           }
-                        )*/
+                        )
                         .yTicks(4)
                         .headingKeys({
                           x: 'degree',
@@ -97,7 +97,7 @@
 
       // Major Viz
       var sonar_major_viz = d3.sonar()
-                        .container_el(sonar_major_el)/*
+                        .container_el(sonar_major_el)
                         .xTickValues([0,45,90,135,180,225,270,315,360])
                         .xTickFormat(
                           function (d) {
@@ -108,7 +108,7 @@
                           function (d) {
                             return (d <= 180) ? d+180 : d-180;
                           }
-                        )*/
+                        )
                         .yTicks(8)
                         .headingKeys({
                           x: 'degree',
@@ -273,7 +273,7 @@
         var h = $(window).height(); // this can be a parent container for e.g. viz-container
 
         $("#viz-container").height( h*0.75 );  // let's always set this to be 75% of window height
-        
+
         h = h*0.75;
         
         $("#viz-minor").height( Math.floor(h*0.25) );
