@@ -30,8 +30,11 @@
       <button id="btn_data_updation_interval">Update</button>
       
     </div>
+    <!--
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.3/d3.min.js" charset="utf-8"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.3/d3.min.js" charset="utf-8"></script>-->
+    <script type="text/javascript" src="js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="js/d3.min.js"></script>
     <script type="text/javascript" src="js/d3.sonar.js?v1"></script>
 
     <script type="text/javascript">
@@ -39,17 +42,17 @@
       var sonar_major_el = document.querySelector("#viz-major");
       var sonar_minor_el = document.querySelector("#viz-minor");
 
-      var PAST_TIME_JAR = 30 * 60 * 1000; // 19 minutes in milliseconds
+      var PAST_TIME_JAR = 19 * 60 * 1000; // 19 minutes in milliseconds
       var LIVE_TIME_JAR = 1 * 60 * 1000; // 1 minute in milliseconds
 
       var past_time_jar_set = [];
 
       var dataset_keys = d3.set([]);
 
-      var UPDATE_STEP = 20000; // 2 seconds
+      var UPDATE_STEP = 2000; // 2 seconds
 
       var active_timers = [],
-        data_updation_interval = 2000;  // in milliseconds
+        data_updation_interval = 100;  // in milliseconds
 
       var FIRST_RUN_TIME;
 
@@ -150,25 +153,25 @@
         var i = 0, j = 0, k = 0, l = 0;
         active_timers.push( 
           setInterval(function(){
-            addHeading( _t_step(++i), getRandomInt(110,150) );
+            addHeading( _t_step(++i), getRandomInt(0,1) );
           }, data_updation_interval )
         );
 
         active_timers.push( 
           setInterval(function(){
-            addDetection(_t_step(++j), 'New Delhi', getRandomInt(110,120), getRandomInt(1,10)  );
+            addDetection(_t_step(++j), 'New Delhi', getRandomInt(-15,-13), getRandomInt(1,10)  );
           }, data_updation_interval )
         );
 
         active_timers.push(
           setInterval(function(){
-            addDetection(_t_step(++k), 'Bangalore', getRandomInt(140,150), getRandomInt(1,10)  );
+            addDetection(_t_step(++k), 'Bangalore', getRandomInt(-32,-30), getRandomInt(1,10)  );
           }, data_updation_interval)
         );
 
         active_timers.push( 
           setInterval(function(){
-            addDetection(_t_step(++l), 'Vadodara', getRandomInt(130,140), getRandomInt(1,10)  );
+            addDetection(_t_step(++l), 'Vadodara', getRandomInt(20,22), getRandomInt(1,10)  );
           }, data_updation_interval)
         );
 
@@ -184,6 +187,7 @@
             name: 'Heading',
             time: new Date(time),
             value: bearing,
+            strength: getRandomInt(9,10),
             is_heading: true
         }
 

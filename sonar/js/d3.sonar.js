@@ -76,8 +76,11 @@
 	            indicator: "#aace00",
 	            heading: "#1A68DB"
 	        },
+	        scatter_layout = true,	// by default
+	        line_layout = !scatter_layout,
 			mainClipPath,
-			mainClipPathID = "clip-"+ Math.round(new Date().getTime()*Math.random());
+			mainClipPathID = "clip-"+ Math.round(new Date().getTime()*Math.random()),
+			yScale_unit_height = 0;
 		
 		function sonar(){
 			
@@ -138,7 +141,7 @@
 
 			strengthScale = d3.scale.linear()
 	            .domain([1,10])
-	            .range([50,100]);
+	            .range([2,5]);
 			
 			_prevWidth = width;
 			_prevHeight = height;
@@ -223,6 +226,7 @@
 
 			var yScale_d0 = d3.min(_date_array);
 			if (yScale_d0) {
+				yDomain = true;
 				yScale
 					.domain([ new Date( yScale_d0.getTime() - dataAge ), yScale_d0]);
 			};
@@ -230,21 +234,22 @@
 
 			// recalculate no. of ticks automagically
 			// NOTE - this is overwriting the API 
-			yTicks = Math.ceil( height/70 ); // 70 is a magical number
+			yTicks = Math.ceil( height/60 ); // 70 is a magical number
 			yAxis.ticks(yTicks);
 
 			// generate y tickvalues
 			// 1. get y extent
 			var _y_axis_u = Math.floor( (yScale.domain()[1].getTime() - yScale.domain()[0].getTime()) / yTicks ),
-				_y_tickValues = [];
+				_y_tickValues = [],
+				_y_0 =  yScale.domain()[0].getTime();
 
 			for (var i = 0; i < yTicks; i++) {
-				_y_tickValues.push( new Date( yScale.domain()[0].getTime() + _y_axis_u*i ) );
+				_y_tickValues.push( new Date( _y_0 + _y_axis_u*i ) );
 			};
 
 			// set tickvalues
 			yAxis.tickValues(_y_tickValues);
-
+			
 			// only update if chart size has changed
 		    if ( (_prevWidth != width) ||
 		      (_prevHeight != height)) {
@@ -290,22 +295,91 @@
 			height = dimension.height;
 
 			// plot heading
-			var heading = gMain.selectAll(".line")
+			var heading = gMain.selectAll(".headings")
 				.data(_map_heading.entries());
 
-			heading
-				.enter().append("path")
-				.attr("clip-path", "url(#"+mainClipPathID+")")
-				.attr("class", "line")
-				.on("click", function(d){
-			    	onclick(d);
-			    })
+			if (scatter_layout) {
+				// calculate yScale_unit_height
+				if (yDomain && !yScale_unit_height) {
+					yScale_unit_height = ( yScale( yScale.domain()[0] ) - yScale( yScale.domain()[1] ) ) / ( yScale.domain()[1].getTime() - yScale.domain()[0].getTime() );
+				};
 
-			heading
-				.attr("d", function(d) {
-					return headingPath(d.value); 
-				})
-				.style("stroke", function(d) { return colors.heading; })
+				heading
+					.enter().append("g")
+					.attr("clip-path", "url(#"+mainClipPathID+")")
+					.classed("headings", true)
+					.on("click", function(d){
+				    	onclick(d);
+				    })
+
+				heading
+				    .each(function(_d,_i){
+          
+						var _heading =  d3.select(this)
+							.selectAll(".heading")
+							.data(_d.value);
+
+						// UPDATE EXISTING
+
+						// ADD NEW - ENTER
+						_heading
+							.enter()
+							.append("ellipse")
+							.classed("heading", true)
+							.attr("cx", function(d){
+								return xScale(xTickFormatInverse(d[headingKeys.x]));
+							})
+							.attr("cy", function(d){
+								return yScale(d[headingKeys.y]);		
+							})
+							.attr("rx", function(d) {
+								return strengthScale(d.strength); 
+							})
+							.attr("ry", function(d,i){
+								return _DATA_POINT_TIME_GAP*yScale_unit_height;
+							})
+							.style("fill", function(d) { return colors.heading; })
+
+
+						// ENTER + UPDATE
+						_heading
+							.attr("cx", function(d){
+								return xScale(xTickFormatInverse(d[headingKeys.x]));
+							})
+							.attr("cy", function(d){
+								return yScale(d[headingKeys.y]);		
+							})
+							//.style("fill-opacity",0.75)
+							.style("opacity",1);
+
+
+						// REMOVE ANY
+						_heading
+							.exit()
+							.remove();
+
+					});
+			};
+
+			if (line_layout) {
+
+				heading
+					.enter().append("path")
+					.attr("clip-path", "url(#"+mainClipPathID+")")
+					.attr("class", "headings line")
+					.on("click", function(d){
+				    	onclick(d);
+				    })
+
+				heading
+					.attr("d", function(d) {
+						return headingPath(d.value); 
+					})
+					.style("stroke", function(d) { return colors.heading; })
+
+			};
+
+			heading.moveToFront();	// keep heading on the topmost layer
 
 			heading.exit().remove();
 
@@ -313,19 +387,81 @@
 			var g_indicators = gMain.selectAll(".indicators")
 				.data(_map_detections.entries());
 
-			g_indicators
-				.enter().append("path")
-				.attr("clip-path", "url(#"+mainClipPathID+")")
-				.attr("class", "line")
-				.on("click", function(d){
-			    	onclick(d);
-			    })
+			if (scatter_layout) {
 
-			g_indicators
-				.attr("d", function(d) {
-					return detectionPath(d.value); 
-				})
-				.style("stroke", function(d) { return colors.indicator; })
+				g_indicators
+					.enter().append("g")
+					.attr("clip-path", "url(#"+mainClipPathID+")")
+					.classed("indicators", true)
+					.on("click", function(d){
+				    	onclick(d);
+				    })
+
+				g_indicators
+				    .each(function(_d,_i){
+          
+						var _indicators =  d3.select(this)
+							.selectAll(".indicator")
+							.data(_d.value);
+
+						// UPDATE EXISTING
+
+						// ADD NEW - ENTER
+						_indicators
+							.enter()
+							.append("ellipse")
+							.classed("indicator", true)
+							.attr("cx", function(d){
+								return xScale(xTickFormatInverse(d[detectionKeys.x]));
+							})
+							.attr("cy", function(d){
+								return yScale(d[detectionKeys.y]);		
+							})
+							.attr("rx", function(d) {
+								return strengthScale(d.strength); 
+							})
+							.attr("ry", function(d){
+								return _DATA_POINT_TIME_GAP*yScale_unit_height;
+							})
+							.style("fill", function(d) { return colors.indicator; })
+
+
+						// ENTER + UPDATE
+						_indicators
+							.attr("cx", function(d){
+								return xScale(xTickFormatInverse(d[detectionKeys.x]));
+							})
+							.attr("cy", function(d){
+								return yScale(d[detectionKeys.y]);		
+							})
+							//.style("fill-opacity",0.75)
+							.style("opacity",1);
+
+
+						// REMOVE ANY
+						_indicators
+							.exit()
+							.remove();
+
+					});
+			};
+
+			if (line_layout) {
+
+				g_indicators
+					.enter().append("path")
+					.attr("clip-path", "url(#"+mainClipPathID+")")
+					.attr("class", "indicators line")
+					.on("click", function(d){
+				    	onclick(d);
+				    })
+
+				g_indicators
+					.attr("d", function(d) {
+						return detectionPath(d.value); 
+					})
+					.style("stroke", function(d) { return colors.indicator; })
+			}
 
 			g_indicators.exit().remove();
 			
@@ -482,6 +618,20 @@
 		sonar.dataAge = function(_){
 			if (!arguments.length) { return dataAge; }
 			dataAge = _;
+			return sonar;
+		}
+
+		sonar.scatter_layout = function(_){
+			if (!arguments.length) { return scatter_layout; }
+			scatter_layout = _;
+			sonar.line_layout(!_);
+			return sonar;
+		}
+
+		sonar.line_layout = function(_){
+			if (!arguments.length) { return line_layout; }
+			line_layout = _;
+			sonar.scatter_layout(!_);
 			return sonar;
 		}
 
