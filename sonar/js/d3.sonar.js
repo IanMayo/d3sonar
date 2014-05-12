@@ -73,7 +73,7 @@
 			_DATA_POINT_TIME_GAP = 0,	// difference between 2 data points on Y Axis
 			_date_array = [],
 			colors = {
-	            indicator: "#aace00",
+	            indicator: "#BCDF1B",
 	            heading: "#1A68DB"
 	        },
 	        scatter_layout = true,	// by default
@@ -100,7 +100,12 @@
 			chart = d3.select(container_el).append("svg")
 		       .attr("class", "chart")
 		       .append("g")
+		       .classed("g-wrapper", true)
 		       .attr("transform","translate("+margin.left+","+margin.top+")");
+
+		    // add background rect - for color
+		    chart.append("rect")
+		    	.classed("bg", true);
 			
 			firstLoad = true;
 						
@@ -152,7 +157,6 @@
 				.append("rect")
 					.attr("width", width)
 					.attr("height", height);
-
 
 			gxAxis = chart.append("g")
 				.attr("class", "x axis")
@@ -256,6 +260,10 @@
 
 				_prevWidth = width;
 				_prevHeight = height;
+
+			    chart.select("rect.bg")
+			    	.attr("width", width)
+			    	.attr("height", height);
 				
 				chart
 					.attr("width", width)

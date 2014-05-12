@@ -4,31 +4,21 @@
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="css/main.css">
     <style type="text/css">
-      
-      #viz-container{
-        display: block;
-        height: 450px;  /* initial height */
-        position: relative;
-      }
-      #viz-major{
-        height: 450px;
-        margin-top: -5px;
-      }
-      #viz-minor{
-        height: 250px;
+      body{
+        background-color: #000000;
       }
     </style>
   </head>
   <body>
 
     <div id="viz-container">
-      <div id="viz-minor" class="viz-minor"></div>
-      <div id="viz-major" class="viz-major"></div>
-      <div id="legend"></div>
+      <div id="viz-minor" class="viz-sonar viz-minor"></div>
+      <div id="viz-major" class="viz-sonar viz-major"></div>
       
+      <!--
       <input id="data_updation_interval" type="text" value="1000">
       <button id="btn_data_updation_interval">Update</button>
-      
+      -->
     </div>
     <!--
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
@@ -49,7 +39,7 @@
 
       var dataset_keys = d3.set([]);
 
-      var UPDATE_STEP = 2000; // 2 seconds
+      var UPDATE_STEP = 10000; // 2 seconds
 
       var active_timers = [],
         data_updation_interval = 100;  // in milliseconds
@@ -92,7 +82,7 @@
                           x: 'degree',
                           y: 'date'
                         })
-                        .margin({top: 20, left: 100, bottom: 5, right: 50})
+                        .margin({top: 25, left: 100, bottom: 5, right: 50})
                         .dataAge(LIVE_TIME_JAR)
                         .colors(colors)
                         .yAxisLabel("")
@@ -133,11 +123,30 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
+      function getBearing(start, end, steps, cntr){
+        return Math.floor( start + (end-start)*cntr/steps );
+      }
+
       function _t_step(n) {
         return new Date( _t_step_init + n*UPDATE_STEP );
       }
       
       var _t_step_init;
+      var rand_steps,
+          rand_interval,
+          rand_a = 0,
+          rand_b = 0,
+          rand_c = 0;
+
+      function refresh_rand(){
+        rand_steps = getRandomInt(90,100);
+        rand_interval = getRandomInt(20,90);
+        rand_a = getRandomInt(rand_a+rand_interval,360);
+        rand_b = getRandomInt(rand_b+rand_interval,360);
+        rand_c = getRandomInt(rand_c+rand_interval,360);
+      }
+
+      refresh_rand();
 
       function setDataUpdateRoutine(reset) {
         _t_step_init = new Date().getTime();
@@ -150,7 +159,8 @@
           sonar_major_viz();
         };
 
-        var i = 0, j = 0, k = 0, l = 0;
+        var i = 0, j = 0, k = 0, l = 0, cntr = 0;
+
         active_timers.push( 
           setInterval(function(){
             addHeading( _t_step(++i), getRandomInt(0,1) );
@@ -159,19 +169,23 @@
 
         active_timers.push( 
           setInterval(function(){
-            addDetection(_t_step(++j), 'New Delhi', getRandomInt(-15,-13), getRandomInt(1,10)  );
+            if (cntr == rand_steps) {
+              cntr = 0;
+              refresh_rand();
+            };
+            addDetection(_t_step(++j), 'New Delhi', getBearing(rand_a, rand_a+rand_interval, rand_steps, cntr), getRandomInt(1,10)  );
           }, data_updation_interval )
         );
 
         active_timers.push(
           setInterval(function(){
-            addDetection(_t_step(++k), 'Bangalore', getRandomInt(-32,-30), getRandomInt(1,10)  );
+            addDetection(_t_step(++k), 'Bangalore', getBearing(rand_b, rand_b+rand_interval, rand_steps, cntr), getRandomInt(1,10)  );
           }, data_updation_interval)
         );
 
         active_timers.push( 
           setInterval(function(){
-            addDetection(_t_step(++l), 'Vadodara', getRandomInt(20,22), getRandomInt(1,10)  );
+            addDetection(_t_step(++l), 'Vadodara', getBearing(rand_c, rand_c+rand_interval, rand_steps, ++cntr), getRandomInt(1,10)  );
           }, data_updation_interval)
         );
 
