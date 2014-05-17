@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <style type="text/css">
+      body{
+        background-color: #000000;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="viz-container">
+      <div id="viz-minor" class="viz-sonar viz-minor"></div>
+      <div id="viz-major" class="viz-sonar viz-major"></div>
+      
+      <!--
+      <input id="data_updation_interval" type="text" value="1000">
+      <button id="btn_data_updation_interval">Update</button>
+      -->
+    </div>
+    <!--
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.3/d3.min.js" charset="utf-8"></script>-->
+    <script type="text/javascript" src="js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="js/d3.min.js"></script>
+    <script type="text/javascript" src="js/d3.sonar.js?v1"></script>
+    <script type="text/javascript" src="js/plot.sonar.js"></script>
+
+    <script type="text/javascript">
+
+      // ---------------------- Routine for random data generation ----------------------
+      
+      var data_updation_interval = 100,  // in milliseconds
+          UPDATE_STEP = 10000, // 10 seconds
+          FIRST_RUN_TIME;
+
+      // used in processing
+      var _t_step_init,
+          rand_steps,
+          rand_interval,
+          rand_a = 0,
+          rand_b = 0,
+          rand_c = 0,
+          active_timers = []
+          ;
+
+      function refresh_rand(){
+        rand_steps = getRandomInt(90,100);
+        rand_interval = getRandomInt(20,90);
+        rand_a = getRandomInt(rand_a+rand_interval,360);
+        rand_b = getRandomInt(rand_b+rand_interval,360);
+        rand_c = getRandomInt(rand_c+rand_interval,360);
+      }
+
+      // Returns a random integer between min and max
+      // Using Math.round() will give you a non-uniform distribution!
+      function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function getBearing(start, end, steps, cntr){
+        return Math.floor( start + (end-start)*cntr/steps );
+      }
+
+      function _t_step(n) {
+        return new Date( _t_step_init + n*UPDATE_STEP );
+      }
+
+      function setDataUpdateRoutine(reset) {
+        _t_step_init = new Date().getTime();
+
+        if (reset) {
+          FIRST_RUN_TIME = _t_step_init;
+
+          // set major viz's yDomain
+          plot.major_viz().yDomain([FIRST_RUN_TIME - options.PAST_TIME_JAR, FIRST_RUN_TIME + options.LIVE_TIME_JAR ]);
+          
+          plot.major_viz()();
+
+        };
+
+        var i = 0, j = 0, k = 0, l = 0, cntr = 0;
+
+        active_timers.push( 
+          setInterval(function(){
+            plot.addHeading( _t_step(++i), getRandomInt(0,1) );
+          }, data_updation_interval )
+        );
+
+        active_timers.push( 
+          setInterval(function(){
+            if (cntr == rand_steps) {
+              cntr = 0;
+              refresh_rand();
+            };
+            plot.addDetection(_t_step(++j), 'New Delhi', getBearing(rand_a, rand_a+rand_interval, rand_steps, cntr), getRandomInt(1,10)  );
+          }, data_updation_interval )
+        );
+
+        active_timers.push(
+          setInterval(function(){
+            plot.addDetection(_t_step(++k), 'Bangalore', getBearing(rand_b, rand_b+rand_interval, rand_steps, cntr), getRandomInt(1,10)  );
+          }, data_updation_interval)
+        );
+
+        active_timers.push( 
+          setInterval(function(){
+            plot.addDetection(_t_step(++l), 'Vadodara', getBearing(rand_c, rand_c+rand_interval, rand_steps, ++cntr), getRandomInt(1,10)  );
+          }, data_updation_interval)
+        );
+
+      }
+
+      // create first dataset
+      // ====================
+      refresh_rand();
+
+      // ---------------------- END of Routine for random data generation ----------------------
+
+
+      // ---------------------- Plot Sonar Viz ----------------------
+
+      var options = {
+        sonar_el : document.querySelector("#viz-container"),
+        major_el : document.querySelector("#viz-major"),
+        minor_el : document.querySelector("#viz-minor"),
+        PAST_TIME_JAR : 19 * 60 * 1000, // 19 minutes in milliseconds
+        LIVE_TIME_JAR : 1 * 60 * 1000, // 1 minute in milliseconds
+        colors : {
+          indicator: "#aace00",
+          heading: "#1A68DB"
+        }
+      };
+
+      // Render Plot
+      // ---------------------
+      var plot = PlotSonar()
+                  .options( options )  // do initialization settings
+                  .createPlot();  // Plot Sonar
+      
+      // ---------------------- END of Plot Sonar Viz ----------------------
+
+      // generate random data periodically
+      // ---------------------------------
+      setDataUpdateRoutine(true);
+
+    </script>
+
+  </body>
+</html>
