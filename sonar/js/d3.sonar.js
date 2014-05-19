@@ -228,11 +228,14 @@
 			// re-intialize scales
 			xScale.range([0, width]);
 
-			var yScale_d0 = d3.min(_date_array);
+			var yScale_d0 = d3.min(_date_array),
+				_ySale_d0_min;
 			if (yScale_d0) {
 				yDomain = true;
+				_ySale_d0_min = new Date( yScale_d0.getTime() - dataAge );
 				yScale
-					.domain([ new Date( yScale_d0.getTime() - dataAge ), yScale_d0]);
+					.domain([ _ySale_d0_min, yScale_d0]);
+				_ySale_d0_min=null;
 			};
 			yScale.range([height, 0]);
 
@@ -248,7 +251,9 @@
 				_y_0 =  yScale.domain()[0].getTime();
 
 			for (var i = 0; i < yTicks; i++) {
-				_y_tickValues.push( new Date( _y_0 + _y_axis_u*i ) );
+				var _d = new Date( _y_0 + _y_axis_u*i );
+				_y_tickValues.push( _d );
+				_d = null;
 			};
 
 			// set tickvalues
@@ -705,20 +710,21 @@
 		      // remove old dataset
 		      _date_array.forEach(function(_d, i){
 
+		      	var _dpt = new Date( data_row.time ).getTime() - new Date(_d).getTime();
+
 			    if (_DATA_POINT_TIME_GAP) {
-		    		if( ( new Date( data_row.time ).getTime() - new Date(_d).getTime() ) >= _DATA_POINT_TIME_GAP ) {
+		    		if( _dpt >= _DATA_POINT_TIME_GAP ) {
 			    		_date_array.splice(i,	1);
 				    	dataset_map.values().splice(i,1);
 				    }
 				}
-
+				_dpt=null;
 		      });
 
 		    }
 
 		    // update viz
 		    sonar.update();
-
 		}
 		
 		return sonar;

@@ -43,7 +43,7 @@
   fill: #000000;
 }
 
-/* style for 2 scaled sonar */
+/* style for dual scale sonar */
 .viz-major{
   margin-top: -5px; /* This adjusts the 2 graph scales */
   z-index: 5;

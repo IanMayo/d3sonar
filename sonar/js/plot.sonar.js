@@ -44,7 +44,6 @@
 
     // store data temporarily
     var past_time_jar_set = [],
-        dataset_keys = d3.set([]),
         active_timers = []
         ;
 
@@ -89,7 +88,7 @@
   
       var data = {
           name: 'Heading',
-          time: new Date(time),
+          time: time,
           value: bearing,
           strength: getRandomInt(9,10),
           is_heading: true
@@ -111,7 +110,7 @@
       
       var data = {
           name: seriesName,
-          time: new Date(time),
+          time: time,
           value: bearing,
           strength: strength,
           is_detection: true
@@ -154,6 +153,8 @@
         };
 
       });
+      latest=null;
+      push_past_time_jar_set=null;
     }
 
     function _bind_events(){
